@@ -1,0 +1,109 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(vm-pop3d.c)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LN_S
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(fcntl.h limits.h paths.h sys/file.h sys/time.h syslog.h unistd.h shadow.h security/pam_appl.h)
+
+dnl Checks for libraries.
+dnl Replace `main' with a function in -lcrypt:
+AC_CHECK_LIB(crypt, main)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+AC_TYPE_UID_T
+
+dnl Checks for library functions.
+AC_FUNC_ALLOCA
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS(gethostname select socket strdup strerror strstr)
+
+private_getopt=
+AC_CHECK_FUNC(getopt_long,, private_getopt=yes)
+if test -n "$private_getopt"; then
+  LIBOBJS="$LIBOBJS getopt.o getopt1.o"
+  AC_DEFINE(USE_LOCAL_GETOPT_H)
+  AC_MSG_RESULT(Using included getopt_long)
+else
+  AC_MSG_RESULT(Using system's getopt_long)
+fi
+AC_SUBST(LIBOBJS)
+
+#dnl Checks for system services
+#AC_ARG_ENABLE(maildir, [  --disable-maildir       disable home directory mail spools],,)
+#AC_ARG_ENABLE(maildir, [  --enable-maildir=PATH   enable home directory mail spools], [ac_cv_sys_maildir=enable="yes" ac_vs_sys_maildir=$enableval], ac_cv_sys_maildir_disable="yes"])
+#
+#if test x"$ac_cv_sys_maildir" != x"no" -a x"$ac_cv_sys_maildir_enable" = x"yes"; then
+	#if test x"$ac_cv_sys_maildir" = x"yes"; then
+		#AC_DEFINE(MAILSPOOLHOME, "/Mail/mailbox")
+	#else
+		#AC_DEFINE_UNQUOTED(MAILSPOOLHOME, "$ac_cv_sys_maildir")
+	#fi
+#fi
+
+AC_ARG_ENABLE(pam,
+[  --enable-pam      enable pam support (enabled if available) ],
+[
+if test "$enableval" = "yes"; then
+  if test "x$ac_cv_header_security_pam_appl_h" != "xyes" ; then
+    AC_MSG_ERROR([PAM headers not found])
+  fi
+  AC_CHECK_LIB(dl, dlopen, LIBS="$LIBS -ldl")
+  AC_CHECK_LIB(pam, pam_authenticate,, AC_MSG_ERROR([libpam missing]))
+  AC_MSG_RESULT(PAM support enabled)
+  AC_DEFINE(USE_PAM)
+else
+  AC_MSG_RESULT(PAM support is disabled)
+fi
+],
+[
+if test "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
+  AC_CHECK_LIB(dl, dlopen, LIBS="$LIBS -ldl")
+  AC_CHECK_LIB(pam, pam_authenticate)
+  AC_MSG_RESULT(PAM support enabled)
+  AC_DEFINE(USE_PAM)
+fi
+]
+)
+
+AC_ARG_ENABLE(virtual, 
+[  --enable-virtual       build with virtual users support (enabled by default) ],
+[
+if test "$enableval" = "yes"; then
+ AC_DEFINE(USE_VIRTUAL)
+ AC_MSG_RESULT(virtual feature is enabled)
+else
+ AC_MSG_RESULT(virtual feature is disabled)
+fi
+] ,
+[ 
+AC_DEFINE(USE_VIRTUAL)
+AC_MSG_RESULT(virtual feature is enabled)
+]
+)
+
+AC_ARG_ENABLE(ip-based-virtual,
+[  --enable-ip-based-virtual      enable IP-based virtual passwd files and spool directories.],
+[
+AC_MSG_RESULT(ip based virtual domains enabled)
+AC_DEFINE(USE_VIRTUAL)
+AC_DEFINE(IP_BASED_VIRTUAL)
+],)
+
+AC_ARG_ENABLE(debug,
+[  --enable-debug      enable debugging messages and logging.],
+[
+AC_MSG_RESULT(debugging enabled)
+AC_DEFINE(DEBUG)
+],)
+
+AC_CONFIG_HEADER(config.h)
+AC_OUTPUT(Makefile)

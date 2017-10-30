@@ -1,0 +1,153 @@
+Installation is relatively simple. Follow these steps:
+
+1)	Run `./configure`. This will create the Makefile and detect your system
+	headers. Virtual users support is enabled by default. (Use
+	--disable-virtual to disable.) For IP-based virtual domains support,
+	see instructions below. (If you want extra debugging output, use
+	configure with --enable-debug.) If PAM is available, it is enabled
+	by default; it can be disabled with --disable-pam.
+
+2)	If you are using procmail or something similar to deliver mail to a
+	nonstandard mailbox location (e.g. $HOME/Mail/inbox) edit the file
+	config.h and define MAILSPOOLHOME appropriately.
+
+3)	Run `make` to build. If all goes well, you can run `make install` to
+	install.
+
+4)	If you want to run in inetd mode, edit your inetd.conf file
+	to point to the program (usually /usr/local/sbin/vm-pop3d unless you
+	specified something else with `./configure --prefix`). Some examples:
+
+  pop stream tcp  nowait  root /usr/libexec/tcpd /usr/local/sbin/vm-pop3d
+
+  pop-3  stream tcp nowait.50 root /usr/sbin/vm-pop3d vm-pop3d -i
+
+	The "pop" or "pop-3" part is the service name as defined in your
+	/etc/services file. Be sure to read the inetd.conf manual page
+	for further information. Then restart inetd with a SIGHUP.
+
+        If you are using xinetd, then maybe use a configuration like:
+
+	 service pop-3
+	 {
+        	 socket_type     = stream
+	         protocol        = tcp
+	         wait            = no
+	         user            = root
+       		 instances       = 25
+		 server          = /usr/sbin/vm-pop3d
+	         server_args     = -i
+	         log_type        = SYSLOG local4 info
+        	 log_on_success  = PID HOST EXIT DURATION
+	         log_on_failure  = HOST ATTEMPT
+	 }
+
+
+	You can run vm-pop3d without superuser privileges via inetd,
+	by setting inetd's user and group field configuration.
+
+	Command-line options for --user and --group are available;
+	You can use the user (or group) name or UID (or GID) number.
+	The group is for overriding the "mail" default which the POP3
+	server will run as. The user setting is for overriding the
+	compiled-in UID used for the virtual domains. An inetd example:
+
+  pop-3-test      stream  tcp     nowait  vmpop   /usr/sbin/tcpd  /usr/pkg/sbin/vm-pop3d --user vmpop --group vmmail --debug=9
+
+5)	If you are running in standalone, you should add vm-pop3d to
+	your start up scripts. A sample init script is available
+	(vm-pop3d.init). For example, copy it to /etc/rc.d/init.d/vm-pop3d
+	(or appropriate location) and make it executable.
+
+	If you use System V-type scripts, then use chkconfig, update-rc.d
+	or ntsysv (or create the symlinks manually) to point to the
+	startup script (maybe at /etc/rc.d/init.d/pop3d).
+
+	If you choose to run as a daemon, make sure your xinetd (or inetd)
+	doesn't refer to POP3; for example, edit /etc/inetd.conf to
+	remove or comment out any lines that start POP3 servers.
+
+6)	If using PAM (Pluggable Authentication Modules) support, then you
+	may need to setup /etc/pam.conf or /etc/pam.d/vm-pop3d with the
+	information from the included vm-pop3d.pamd file. Some operating
+	systems that offer PAM, such as Debian Linux and FreeBSD, provide
+	already working defaults. Note that PAM is only used for the
+	regular system accounts and not the virtual accounts.
+
+7)	Be sure to read the vm-pop3d manual page.
+
+8)	For "Frequently asked questions" read the FAQ.
+
+== Virtual Domains Support ==
+
+virtualmail-pop3d allows use of separate password files and spool
+directories for each virtual domain.
+
+This will allow you to have multiple users with the same name
+on one system. Well... they aren't really users, just mailboxes.
+
+For example, you can use the Exim MTA to deliver the mail in
+the correct spool hierarchy. You can use whatever you want to
+put the mail in the right place; just make sure it is readable
+and writable by the program.
+
+Then the end-user, enters his/her username AND domain name
+as the username in the pop3 mail client separated by an
+At sign "@" or a colon ":". (The colon is because Netscape
+Messenger pre-parses the username before sending to the
+pop3 server.)
+
+This virtual users support is enabled by default. Use --disable-virtual
+(with ./configure) to disable this capability.
+
+You can also enable IP-based support with ./configure's
+ --enable-ip-based-virtual. (Or you can also define the config.h option
+"IP_BASED_VIRTUAL".) This feature will will select the password file
+and mail spool directory by the hostname that the user chooses to connect
+to. (Of course, with this option, you will need separate IPs for each
+virtual domain and the IP must resolve to the chosen host name.)
+
+If the user enters the domain name with his username,
+it will override the IP-based option.
+
+Some default settings that you may need to change in vm-pop3d.h:
+
+- VIRTUAL_UID is the UID of the owner (real Unix account) of the
+  virtual mailboxes. 
+- VIRTUAL_MAILPATH is the path to the sub-directories containing
+   the mailboxes for each virtual domain (or realm). It has a host,
+   domain or realm name as a sub-directory which contain the mailbox
+   files; for example: /var/spool/virtual/foo.bar/username where
+   "username" is the mailbox name. (By default, this is
+   /var/spool/virtual.) At this time, the mailboxes are the standard
+   Unix/Berkeley mbox format.
+- VIRTUAL_PASSWORDS_PATH is the first part (or prefix) of the path to
+  the sub-directories containing the password files for each virtual
+  domain. (By default, this is /etc/virtual/.)
+- VIRTUAL_PASSWORD_FNAME is the file name (or suffix) for the virtual
+  domain's password file. (By default, this is "passwd". It could be set
+  to "mail/mailboxes", for example.) The full path to this password file
+  is built by concatenating
+   VIRTUAL_PASSWORDS_PATH "/" domainname "/" VIRTUAL_PASSWORD_FNAME
+  where domainname is the name of the virtual host/realm that the
+  virtual user is a part of.
+
+The password file is:
+
+username:ENCRYPTED_PASSWORD
+
+They are located like:
+
+/etc/virtual/domainname/passwd
+/etc/virtual/poptest.reedmedia.net/passwd
+/etc/virtual/foo.bar/passwd
+
+The mail spool looks like something like this:
+
+/var/spool/virtual/domainname/jeremy
+/var/spool/virtual/domainname/somename
+/var/spool/virtual/poptest.reedmedia.net/jeremy
+/var/spool/virtual/poptest.reedmedia.net/somename
+/var/spool/virtual/foo.bar/jeremy
+/var/spool/virtual/foo.bar/somename
+

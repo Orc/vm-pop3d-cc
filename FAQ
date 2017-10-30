@@ -1,0 +1,93 @@
+Frequently Asked Questions
+10/Jul/2001
+(Please send your clarifications or answers to the mailing list.)
+
+
+Why "connection refused" when I check emails?
+
+Make sure the POP3 server is running either as a daemon or via
+tcpserver or inetd, for example. (If you get a "Connection
+closed by foreign host" then your firewall may be stopping you.)
+
+Why do the logs say "logged in with mailbox '/dev/null'"?
+
+Make sure that the mailbox really exists. Make sure that it is running
+with the correct UID so it has permissions to access the mailbox. This
+POP3 server uses /dev/null when the mailbox does not exist or is not
+readable. This is not a POP3 server problem. Make sure your mail transfer
+agent (MTA) or mail delivery agent (MDA) is delivering to the correct
+location. If using virtual mail support, make sure the mailbox is 
+readable and writable by the defined VIRTUAL_UID.
+
+What does "pop3/tcp server failing (looping)" mean?
+
+If your log entry looks like:
+  inetd[20921]: pop3/tcp server failing (looping), service terminated
+Then your POP3 server is not broken. This means that inetd has reached
+the maximum amount of servers for one minute (default is 40). To fix this,
+configure your inetd entry for your POP3. Read your inetd and inetd.conf
+manual pages -- search for "wait" and then "max". For example:
+   pop-3  stream tcp nowait.75 root /usr/sbin/vm-pop3d vm-pop3d -i
+
+Can I run vm-pop3d without any superuser (root) privileges?
+
+You can run vm-pop3d without any root privilege as long as you use a
+different port (such as 1100) and are able to change the group and UID.
+You can run vm-pop3d via inetd as a different (non-root) user. Just make
+sure that the user and group that vm-pop3d runs as has access permission
+to read the passwd files, create lock files and read and update mailboxes.
+
+What does the logged "Failed to create lockfile" mean?
+
+This means that vm-pop3d couldn't create a lockfile in the current spool
+directory. This was probably caused because your vm-pop3d did not have
+write permissions for that directory. Make sure that the user or group
+that your vm-pop3d runs as has permission to create a file in that
+directory. (A lockfile is simply an empty file that tells other vm-pop3d
+sessions that the corresponding mail box is in use; the lockfile is removed
+when the session ends.)
+
+My password is correct, but it is rejected; I receive "-ERR Bad login".
+What is wrong?
+
+Most likely, it is built to use PAM (Pluggable Authentication Modules)
+support and your PAM configuration is not setup. You may need to setup
+/etc/pam.conf or /etc/pam.d/vm-pop3d with the information from the
+included vm-pop3d.pamd file.
+
+Or maybe you are using IP-based support but you are trying to login
+with a regular system user. Even without the realm name appended, it
+figures out which passwd file to use from the IP that it was connected
+to.  Your logs should tell you that it couldn't read the non-existent
+passwd file.
+
+What does "Socket closed" log message mean?
+
+Basically, this means that the POP3 session was not properly closed.
+Probably the POP3 client did not send a QUIT command. This is common
+with Outlook and Outlook Express. A similar message from another POP3
+server is: "-ERR POP EOF or I/O Error".
+
+Can I use MD5 passwords instead of DES?
+
+It has been reported that you can use MD5 passwords with Debian
+GNU/Linux 2.2 "potato" using libc6 2.1.3-18. The hashed password must
+be generated starting with a "$1$"; for example:
+   $passwd = crypt ($ARGV[1], '$1$'.$salt);
+Apparently, the crypt does the right thing, so no changes are needed
+in the server.
+
+What does "Quitting - host name not found" mean?
+
+This usually means that no DNS or /etc/hosts is setup to map the IP
+address to a real hostname. It is used for the IP-based virtual support.
+(This hostname will be used for passwd file path.)
+
+-=-=-=-
+29/Nov/2001
+24/Nov/2001
+12/Oct/2001
+04/Oct/2001
+08/Jun/2001
+26/Feb/2001
+13/Nov/2000

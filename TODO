@@ -1,0 +1,488 @@
+TODO: A LIST OF THINGS TO DO
+Also "grep -i todo *" 
+
+vm-pop3d has -devel mailing list; please use it to discuss development ideas,
+bugs, and other issues. If providing patches, please only have simple changes
+per patch; in other words, don't fix many things or have numerous changes
+in one patch. Only send one patch per email -- so we can keep discussion
+per that subject.
+
+Below is a list of some plans, a list of items suggested to do, and
+some things to remember.
+
+-=-=-=-=-=-
+Plans/Priorities:
+-=-=-=-=-=-
+
+1) Code cleanup and audit (or for bug fixes).
+    - For example, many system and C library calls are not properly checked
+      for errors or return values;
+    - maybe implement Rok's debug_cleanup patch;
+    - don't read and write messages from begining of mailbox if deletions
+      are later in mailbox.
+    - fix UIDL so it is more unique (patch already submitted)
+2) I am interested in adding just a couple small features for the
+   following release. (But this is not set in stone and I am willing
+   to take suggestions.)
+   - add command-line option to set default realm/domain name (so "@domain"
+     is not needed).
+   - if passwd file has uid (and gid) then use (like same UID for all realm);
+3) Then maybe for next release (1.1.7):
+   - maybe implement Melnikoff's authentication hooks
+   - change uid at beginning startup (after binding to port 110 for daemon);
+4) APOP working
+5) Then authentication hooks for LDAP, SQL, Berkeley DB.
+6) Maildir support.
+
+-=-=-=-=-=-
+Things to fix / Bugs
+-=-=-=-=-=-
+Melnikoff (21/Dec/2001)
+I'm use other method. When vm-pop3d run - mailbox open in read only mode.
+And only if user make chenges in mail box - mailbox unlocked, closed, locked
+again and open for read/write mode. And i'm checking inode of lock file and
+size of mailbox and mtime of mailbox.
+
+-- or maybe: open the file a
+second read/write without closing the first file descriptor (which is
+read-only).
+ 
+Melnikoff (21/Dec/2001)
+output data to user side with fprintf make many problems.
+vm-pop3d may frezzy in kernel and sleep one hour (internal kernel TCP timeout)
+Maybe rewrite all fprintf call to procedure whet used select() ? Of course,
+this problem exist only if dilaups user (or other user whith bad connection)
+served.
+
+check return ERR_FILE -- make sure it properly closes and frees (20/Dec/2001)
+
+(17/Jan/2002)
+fcntl(2) says: "If an applica-
+     tion wishes only to do entire file locking, the flock(2) system call is
+     much more efficient."
+
+(19/Dec/2001)
+make sure that extra.c
+    if (empty_line && !strncmp(buf, "From ", 5)) {
+      while (strchr(buf, '\n') == NULL)
+        fgets(buf, 80, mbox);
+properly figures out a message size -- with "stat"
+in other words, if line is longer than 80 then next fgets() will
+get more of that line and then the size will be wrong
+
+look at Andrey J. Melnikof's new patch for sigpipe (11/Dec/2001)
+
+This is inefficient (in quit.c) (29/Nov/2001)
+                  fgetpos (mbox, readpos);
+                  fsetpos (mbox, writepos);
+                  fprintf (mbox, "%s", buf);
+                  size += strlen (buf);
+                  fgetpos (mbox, writepos);
+                  fsetpos (mbox, readpos);
+Why waste time rewriting the same data? It should only start overwriting
+at first deleted (marked) message. (And do the check for valid "From ")
+It can be very slow!
+
+add configure switch for getopt to use private/internal or to use system (29/Nov/2001)
+
+Melnikoff's comments (7/Nov/2001):
+  in user.c code:
+          getspnam(user);
+          ...
+          setuid(user);
+          ...
+          pop3_lock(mbox);
+  if pop3_lock failed - client see "-ERR in use" and pop3 wait next command.
+  LookOut immendantly drop connection, the_bat try auth again and failed on
+  getspnam(user). getspnam requied r00t privileges, but if pop3_user called
+  twice - code already run with user priveleges. i think, try lock mailbox
+  need before setuid() call or make vm-pop3d setuid binary ?
+-- maybe use effective uid?
+
+(29/Oct/2001)
+This log was created while mailbox was not writeable for user 'mail':
+Oct 28 08:53:01 snake vm-pop3d[13751]: cmd: QUIT
+Oct 28 08:53:01 snake vm-pop3d[13751]: Quitting on signal: 11
+Oct 28 08:53:01 snake vm-pop3d[13747]: Server exited (13751)
+Using gdb, I see that the seg fault is in libc
+#0  0x40099a1b in freopen () from /lib/libc.so.6
+#1  0x804be59 in pop3_quit (arg=0x80511d8 "") at quit.c:40
+This is Debian Linux GNU libc 2.1.3-19 
+Need to test under BSD
+
+make sure it compiles under Solaris 8 (-lnsl -lsocket and maybe -lresolv)
+ problem reported by Chua
+ (31/Jul/2001)
+
+look at Melnikoff's patch and notes about procmail and fseek (28/Jul/2001)
+> I was playing with the source code of the latest version and I tried to
+> use flock instead of the default lock mechanism implemented in the
+> server (pop3_lock and pop3_unlock on the extra.c file) but it failed,
+> then I noticed that the pop server opens multiple times the same mailbox
+> file on two different modes, "r" and then "r+", using fopen() and
+> freopen().
+> 
+> I can't find a very good reason to do this, so, any of you would be kind
+> enough to explain me why to do this? I just stripped all those freopen
+> calls and changed the mode on the fopen calls to "r+" and it seems to be
+> working fine.
+And, you should replease freopen to ftell(mbox) or fseek(mbox, 0L, SEEK_SET)
+for normal working.
+
+
+If command has CTRL-C, debug logs it as "ÿôÿý^F"
+ then sometimes it stops replying and "quit" doesn't work.
+ (13/Jun/2001)
+
+Need to fix manual page because it has - (single-dash) with long
+ options instead of double-dash "--" (12/Jun/2001)
+
+doesn't log "Session ended" after quit after a "-ERR Bad login" (06/Jun/2001)
+
+md5.c needs #include <string.h> (31/May/2001)
+ md5.c:117: warning: implicit declaration of function `memcpy'
+ (reported by Rok Pape\xbe)
+
+look at patch from Tomi Hakala (11/Sep/2001)
+ new UIDL implementation patch number two! (he revised it) (12/Sep/2001)
+ see if it is different from:
+ From: Tomi Hakala <tomi.hakala@clinet.fi> (12/Jan/2002)
+ http://www.kartman.fi/vm-pop3d/md5-uidl-1.1.5-1.diff
+use a hash for UIDL support
+ "Now it could be that the POP3 server uses the message-id as UIDL.
+ That is completely broken, since it's perfectly valid to have the
+ same message with the same message-id in a mailbox twice.
+ Anyway this sounds like a bug in the POP3 server you're using" (22/Nov/2001)
+fix uidl support that uses Message-Id so it only uses correct ASCII
+ (no more carriage returns)
+
+
+-=-=-=-=-=-
+Suggested Ideas
+-=-=-=-=-=-
+
+(09/Jan/2002)
+Have a setting for a default domain (as used with 
+USER) that will default to the standard authentication. (This would also  
+be helpful for those who use IP-based support.)
+
+maybe use getservbyname(3) (14/Dec/2001)
+
+maybe have a macro for PORT that can be set by configure or in vm-pop3d.h (14/Dec/2001)
+
+Melnikoff: (30/Nov/2001)
+>       Got rid of 600 second timeout limitation (vm-pop3d.c, vm-pop3d.8).
+Maybe try experiment with setsockopt ? I try to use this code with linux but
+can't test it now.
+#ifdef HAVE_SETSOCKOPT
+  bzero(&tv, sizeof(tv));
+  tv.tv_sec = 200;
+  tv.tv_usec = 0;
+
+  if (setsockopt(ifile, SOL_SOCKET, SO_SNDTIMEO, 
+        (const void*) &tv,sizeof(tv)) == -1)
+  {
+    syslog (LOG_DEBUG, "setsockopt() failed: %s", strerror(errno));
+  }
+#endif
+
+
+look at Raju Mathur's VishwaKarma 2.0 patches (15/Oct/2001)
+ http://kandalaya.org/software/
+
+look at several small patches/ideas from graham@reg.ca (19/Sep/2001)
+ 1) add VIRTUAL_SUBMAILDIR 
+ 2) set uid to owner of passwd file
+ 3) plain text password in passwd file
+ 4) add % as delimiter
+
+I wonder if new retr.c is substantially slower than old version. (11/Oct/2001)
+ test this!
+ also test whether write(2) is faster than fprintf(3)
+
+Maybe if mailbox is not mbox (or corrupted) log an error (31/Oct/2001)
+ and maybe exit; suggested by Melnikoff
+
+Jeff Davis suggested a config file support (20/Nov/2001)
+ - also others have already made patches for this.
+
+test and add note to use Apache's htpasswd for creating password files.
+ (26/Apr/2001)
+
+make new pop3_authenticate() (19/Sep/2001)
+ - maybe authenticate.c
+ - provide username and password
+ - returns uid. mailbox location, mailbox name successfull or unsuccessful
+
+strip out all the auth code out of pop3_user also.
+auth routines will just take the username, domain name and
+password. They will also return UID and location of mailbox. (09/Apr/2001)
+
+maybe add VIRTUAL_MAILDIR_SUBDIR (30/Apr/2001)
+
+change format of getting virtual passwd pathname so it will
+ work easily with linuxconf/vdeliver (13/Sep/2001)
+ suggested by Thomas Knoop
+
+look at patch from Tomi Hakala (10/Sep/2001)
+ This patch adds message size for RETR command output. This enables
+ message download progress bar on Netscape Mail client, and possibly
+ on other POP3 clients also.
+
+Melnikoff's patch (27/Jul/2001)
+5 seconds sleep before say -ERR Invalid login and 5 bad login tries.
+look at Padraic Renaghan's idea below.
+
+need configure switch --enable-pam and --disable-pam. I have some
+mail servers on RedHate 6.x and 7.x but i don't need use ProblemAuthMechanism
+ - suggested by Melnikoff (25/Jun/2001)
+
+Create configure switch... --use-internal-getopt
+ suggested by Melnikoff (25/Jun/2001)
+
+configure compile-time switch to set syslog FACILITY and PRIORITY
+ suggested by Melnikoff (25/Jun/2001)
+
+Should it print socket closed error message if socket is closed? (extra.c)
+ (12/Jun/2001)
+
+maybe --user should only be compiled in if virtual support is configured
+  (11/Jun/2001)
+
+remove detailed logging from waitpid() status results (11/Jun/2001)
+
+maybe implement a connection rate (like inetd, xinetd, or sendmail)
+ "I see on my sendmail, it can't allow more two connection from
+ one host per second". idea suggested by Andrey J. Melnikoff (11/Jun/2001)
+
+detailed logging example:
+Jun  8 18:43:43 <mail.notice> bart popa3d[75848]: Authentication passed for masjidulquds
+Jun  8 18:43:43 <mail.notice> bart popa3d[75848]: 0 messages (0 bytes) loaded
+Jun  8 18:43:43 <mail.notice> bart popa3d[75848]: 0 (0) deleted, 0 (0) left
+
+And some more detailed logging ideas (14/Feb/2001):
+Feb 14 13:30:12 foothillsnet ipop3d[1514]: pop3 service init from 198.78.45.230
+Feb 14 13:30:12 foothillsnet ipop3d[1514]: Mailbox vulnerable - directory /var/s
+pool/mail must have 1777 protection
+Feb 14 13:30:13 foothillsnet ipop3d[1514]: Login user=editormen host=[198.78.45.
+230] nmsgs=0/0
+Feb 14 13:30:15 foothillsnet ipop3d[1514]: Logout user=editormen host=[198.78.45
+.230] nmsgs=0 ndele=0
+
+and more logging ideas (wu-ipop3d):
+Jun 25 19:52:06 kenga ipop3d[17119]: Login user=simpex host=simpex.kmv.ru
+[217.106.85.251] nmsgs=0/0
+Jun 25 19:52:10 kenga ipop3d[17119]: Logout user=simpex host=simpex.kmv.ru
+[217.106.85.251] nmsgs=0 ndele=0
+
+
+add options (build- and run-time) for detailed logging
+ cucipop has another 'great' feature in that it logs quantity&bytes of emails
+ removed as well as quantity&bytes of emails left behind.
+ Apr 18 17:52:54 mail cucipop[38484]: crettich 209.53.238.206 24, 6 (127233), 0 (0)
+
+(a detailed logging patch is already available.) (?Jan?/2001)
+
+maybe implement patch from Rok Pape¾ for debug_syslog patch (31/May/2001)
+
+maybe implement patch from Rok Pape¾ for Autoconf patch (31/May/2001)
+
+error checking for all open's and write's (29/May/2001)
+
+allow command-line option to specify IP for daemon to listen to (29/May/2001)
+ (suggested by Austin Heap <newwave @ ACMEmail.net>)
+ inet_aton("128.1.1.1", &client.sin_addr); /* use your IP */
+
+allow configuration setting to use a "default" domain/realm name
+ (so /etc/passwd is never used). (26/May/2001)
+  -- configure option (and not by default?)
+
+look at temnota patch (setproctitle +) (25/May/2001)
+look at Rok Papez config patch (25/May/2001)
+
+add setproctitle() support (24/May/2001)
+ IMHO, ps ax| grep pop3 
+ 11941 ?        S      0:00 vm-pop3d: waiting command
+ 11942 ?        S      0:00 vm-pop3d: temnota: RETR 1
+ 11952 ?        S      0:00 vm-pop3d: argus: wait command
+ (suggested by Andrey J. Melnikoff (TEMHOTA) <temnota @ kmv.ru>)
+
+fix readme/install/webpage so they can all be in sync (23/May/2001)
+
+offer nhash support (code on Exim site?) (22/May/2001)
+
+maybe offer option to use different UIDs for each virtual domain?
+ (This could be implemented easily with new auth routines.)
+ (16/May/2001)
+
+should it default to having a timeout or not? (07/May/2001)
+
+for new auth routines: make routines that can use mysql,
+dbopen(3) style authentication. (01/May/2001)
+
+check results of chdir(), etc. (30/Apr/2001)
+
+research: why does a certain user always have "Socket closed"?
+ (28/Apr/2001)
+
+add debugging logging that says if passwords don't match. (26/Apr/2001)
+
+look at patches from Sergey Poznyakoff sent to mailutils list. (21/Apr/2001)
+ includes a few fixes and new features.
+
+Make sure you check that this works more than once... signal() is
+a deprecated interface function, and some implementations required
+you to re-specify the handler every time the signal was delivered,
+at least for certain signals. (17/Apr/2001)
+BSD systems don't reset the handler, System V does (so it has
+to be reinstalled every time in the handler).
+One should use the POSIX sigaction(2) system call, which has
+defined portable semantics.
+The sigaction() semantics are well defined and signal does
+not need to be rearm.
+
+patches from Andrey J. Melnikoff (16/Apr/2001)
++         case ERR_MBOX_LOCK:
++           syslog (LOG_ERR, "User %s - mailbox locked", 
++                   username?username:"UNKNOWN");
++           break;
++           
++       case ERR_BAD_LOGIN:
++           syslog (LOG_ERR, "User %s - failed auth\n", 
++                   username?username:"UNKNOWN" );
++           sleep(5); /* prevent brute-force attack */
+
+
+try compiling with "-ansi -pedantic-errors -Wall -Werror" (11/Apr/2001)
+
+report if port is in use (10/Apr/2001)
+ it was reporting to stderr but fiel descriptor 2 was closed;
+ maybe this needs to be duplicated over and then closed after this message.
+
+the main vm-pop3d routines are too long and need to be broken
+up into sub-routines. (09/Apr/2001)
+
+syslog (LOG_INFO, "%s not found in %s passwd file", arg, domainname);
+ (06/Apr/2001) (Padraic Renaghan's idea.)
++               if (strcmp (pw->pw_passwd, crypt (pass, pw->pw_passwd))) {
++            syslog (LOG_INFO, "Wrong passwd for %s @ %s", arg, domainname);
+Only if the administrator chooses to do this as a compile- AND run-time
+option.
+
+consider making UIDL support a compile-time and/or run-time option.
+ (06/Apr/2001)
+
+freeBSD says:
+gcc -c -DHAVE_CONFIG_H -g -O3 -Wall -pedantic -ansi getopt.c
+getopt.c: In function '_getopt_internal':
+getopt.c:444: warning: implicit declaration of function 'strncmp'
+getopt.c:436: warning: 'indfound' might be used uninitialized in this function
+
+gcc on NetBSD says:
+ gcc -c  -DHAVE_CONFIG_H -g -O3 -Wall -pedantic -ansi getopt.c
+ getopt.c: In function `_getopt_internal':
+ getopt.c:456: warning: implicit declaration of function `strncmp'
+ (06/Apr/2001)
+
+OpenBSD says: (21/Aug/2001)
+ gcc -c  -DHAVE_CONFIG_H -g -O3 -Wall -pedantic -ansi getopt.c
+ getopt.c: In function `_getopt_internal':
+ getopt.c:444: warning: implicit declaration of function `strncmp'
+ getopt.c:436: warning: `indfound' might be used uninitialized in this function
+
+OpenBSD says: (21/Aug/2001)
+ gcc -c  -DHAVE_CONFIG_H -g -O3 -Wall -pedantic -ansi vm-pop3d.c
+ vm-pop3d.c: In function `pop3_mainloop':
+ vm-pop3d.c:294: warning: long int format, time_t arg (arg 5)
+
+Does pop3_unlock need to be called if pop3_lock doesn't work in user.c?
+ (06/Apr/2001)
+
+maybe make "mailbox" pointer just local for each function
+ pass it as an argument if needed by other functions? (05/Apr/2001)
+
+make sure chdir are checked
+
+make sure MAILSPOOLHOME works with virtual support
+
+suggestsions from Padraic Renaghan <padraic@renaghan.com>
+(05/Apr/2001)
+> 3) For the errors in virtual.c, send them through to the
+> system log with something like
+>   syslog (LOG_ERR, "Couldn't open password file: %s", buffer);
+LOG_LEVEL 5?
+
+> 4) In user.c, add syslog(LOG_INFO...) stmts for conditions when
+> password is null, no uid, or password mismatch is encountered. This
+> is helpful for debugging and also to know if someone is atacking the
+> server
+
+Need to clean up code; for example why aren't fsetpos() checked for
+ return value? (05/Apr/2001)
+
+turn on APOP (as an option?)
+ fix apop code to remove duplicate code and to add debugging (17/Jan/2002)
+
+socklen_t doesn't exist on solaris, it's size_t
+
+makefile:  LIBS = -ldl -lpam -lsocket -lnsl, it's specific to solaris
+
+add "REALM" command like HTTP host command
+
+sending a SIGHUP (defaults to terminate process) to a
+vm-pop3d process kills it uncleanly (no logging and stale .lock file).
+Does this matter?
+
+Make sure it uses the right getopt:
+
+gcc -c  -DHAVE_CONFIG_H -g -O3 -Wall -pedantic -ansi getopt.c
+getopt.c: In function `_getopt_internal':
+getopt.c:456: warning: implicit declaration of function `strncmp'
+ maybe in configure.in:
+AC_CHECK_FUNC(getopt, [getopt=yes])
+if test x$getopt = "x"; then
+        CFLAGS="$CFLAGS -I./getopt"
+fi
+
+if port already listening then let the admin know
+
+look into supporting external DCE authentication (like on AIX) (17/July/2001)
+
+Also, provide sample file or documentation for PAM: (27/Nov/2001)
+debian and freebsd include a working default already.
+right now:
+auth       required     /lib/security/pam_pwdb.so shadow
+account    required     /lib/security/pam_pwdb.so
+maybe freebsd:
+vm-pop3d   auth    required pam_unix.so
+vm-pop3d   account required pam_unix.so
+
+* Other extensions?
+* Security audit
+* Bug fixes
+
+-=-=-=-=-=-=-
+FORGET BELOW?
+
+-- now has --user option, so maybe these idea aren't needed:
+if VIRTUAL_UID is not set then it should try to get
+the UID of a "vmpop3d" user. If then still no good UID then log a message
+(also to stderr) and die at start-time. (06/Apr/2001)
+use a "vmpop3d" user (10/Apr/2001)
+
+-- superuser is not needed -- just a user with permission to set group:
+check for superuser privileges (10/Apr/2001)
+ rainier:~/src/pop3d/vm-pop3d-1.1.0-without-capa-for-uidl$ ./vm-pop3d -d 4
+ Error setting group: Operation not permitted
+
+-=-=-=-=-=-=-
+Things to remember:
+
+- test with --disable-virtual
+- test with --enable-ip-based-virtual
+- test with (and without) --enable-debug
+- test under Debian Linux
+- test under NetBSD
+- test UIDL
+- make sure documentation matches any new (or removed) features
+

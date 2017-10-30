@@ -1,0 +1,122 @@
+# virtualmail-pop3d - a POP3 server with virtual domains support
+# This code is licensed under the GPL; it has several authors.
+# vm-pop3d is based on:
+# GNU POP3 - a small, fast, and efficient POP3 daemon
+# Copyright (C) 1999 Jakob 'sparky' Kaivo <jkaivo@nodomainname.net>
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+#### Start of system configuration section. ####
+
+VPATH = @srcdir@
+srcdir = @srcdir@
+
+CC = @CC@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+DEFS = @DEFS@
+LIBS = @LIBS@
+LIBOBJS = @LIBOBJS@
+
+## doesn't compile with followimg -ansi option under BSD/OS
+CFLAGS = -g -O3 -Wall -pedantic -ansi
+LDFLAGS =
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+sbindir = @sbindir@
+mandir = @mandir@
+man8dir = $(mandir)/man8
+
+# Prefix to be prepended to each installed program, normally empty or `g'.
+binprefix = 
+
+#### End of system configuration section. ####
+
+SHELL = /bin/sh
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+SRCS = apop.c auth.c capa.c dele.c extra.c vm-pop3d.c list.c md5.c \
+       noop.c quit.c retr.c rset.c stat.c top.c uidl.c user.c virtual.c \
+       options.c
+OBJS = $(LIBOBJS) apop.o auth.o capa.o dele.o extra.o vm-pop3d.o \
+       list.o md5.o noop.o quit.o retr.o rset.o stat.o top.o uidl.o \
+       user.o virtual.o options.o
+HDRS = vm-pop3d.h md5.h
+DISTFILES = $(SRCS) $(HDRS) COPYING Makefile.in README README.rfc README.rpm \
+	    RFC????.txt TODO configure configure.in config.h.in vm-pop3d.pamd \
+	    vm-pop3d.spec mkinstalldirs install-sh vm-pop3d.init debian \
+            vm-pop3d.8 AUTHORS INSTALL options.c options.h
+
+all: vm-pop3d
+
+.PHONY: all
+
+.c.o:
+	$(CC) -c $(CPPFLAGS) $(DEFS) $(CFLAGS) $<
+
+.PHONY: install installdirs
+
+install: installdirs vm-pop3d vm-pop3d.8
+	$(INSTALL_PROGRAM) vm-pop3d $(ROOT)$(sbindir)/$(binprefix)vm-pop3d
+	-$(INSTALL_DATA) $(srcdir)/vm-pop3d.8 $(ROOT)$(man8dir)/vm-pop3d.8
+
+installdirs:
+	$(srcdir)/mkinstalldirs $(ROOT)$(sbindir) $(ROOT)$(man8dir)
+
+vm-pop3d: $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
+Makefile: Makefile.in config.status
+	$(SHELL) config.status
+
+config.status: configure
+	$(srcdir)/configure --no-create
+
+TAGS: $(SRCS)
+	etags $(SRCS)
+
+.PHONY: clean mostlyclean distclean realclean dist
+
+clean:
+	rm -f vm-pop3d *.o core
+
+mostlyclean: clean
+
+distclean: clean
+	rm -f Makefile config.cache config.log config.status config.h
+
+realclean: distclean
+	rm -f TAGS
+	rm -f *~
+
+dist: $(DISTFILES)
+	indent *.[ch]
+	rm *.[ch]~
+	echo vm-pop3d-`sed -e '/VERSION/!d' -e 's/[^0-9.]*\([0-9.]*\).*/\1/' -e q vm-pop3d.h` > .fname
+	rm -rf `cat .fname`
+	mkdir `cat .fname`
+	cp -r $(DISTFILES) `cat .fname`
+	tar chozf `cat .fname`.tar.gz `cat .fname`
+	rm -rf `cat .fname` .fname
+
+# Prevent GNU make v3 from overflowing arg limit on SysV.
+.NOEXPORT:
+

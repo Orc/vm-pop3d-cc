@@ -1,0 +1,92 @@
+.Dd March 17, 2001
+.Dt VM-POP3D 8
+.Sh NAME
+.Nm vm-pop3d
+.Nd POP3 mail server
+.Sh SYNOPSIS
+.Nm vm-pop3d
+.Op Fl hiv
+.Op Fl d Ar MAXCHILDREN
+.Op Fl p Ar PORT
+.Op Fl t Ar TIMEOUT
+.Op Fl g Ar GROUP
+.Op Fl u Ar USER
+.Op Fl help
+.Op Fl inetd
+.Op Fl port Ar PORT
+.Op Fl timeout Ar TIMEOUT
+.Op Fl daemon Ar MAXCHILDREN
+.Op Fl group Ar GROUP
+.Op Fl user Ar USER
+.Op Fl version
+.Sh DESCRIPTION
+.Nm vm-pop3d
+is a server implementation of the Post Office Protocol.
+Remote clients can retrieve their email via POP3.
+vm-pop3d has support for virtual users and virtual domains.
+(vm-pop3d is also known as virtualmail-pop3d.)
+.Pp
+Available options:
+.Bl -tag -width Ds
+.It Fl d Ar MAXCHILDREN
+.It Fl daemon Ar MAXCHILDREN
+Runs
+.Nm
+in daemon mode with a maximum of
+.I MAXCHILDREN
+child processes.
+.It Fl g Ar GROUP
+.It Fl group Ar GROUP
+Set group name or GID to override default "mail" group.
+.It Fl h
+.It Fl help
+Displays a summary of options and exits.
+.It Fl i
+.It Fl inetd
+Runs
+.Nm
+by reading from stdin and writing to stdout. This is the default.
+.It Fl p Ar PORT
+.It Fl port Ar PORT
+Runs
+.Nm
+in daemon mode (implies
+.I \-d
+), but listens on port
+.I PORT
+rather than 110 (the default).
+.It Fl t Ar TIMEOUT
+.It Fl timeout Ar TIMEOUT
+Sets an idle timeout of
+.I TIMEOUT
+seconds.
+.It Fl u Ar USER
+.It Fl user Ar USER
+Set user name or UID to override compiled-in UID for virtual user mail access.
+.It Fl v
+.It Fl version
+Displays version information and exits.
+.It Fl D Ar LEVEL
+.It Fl debug Ar LEVEL
+If compiled with debugging support, outputs and/or logs additional
+messages useful for troubleshooting. Sets debug level to LEVEL.
+
+.Sh FILES
+.Bl -tag -width /var/spool/virtual -compact
+.It Pa /var/spool/mail
+mail files
+.It Pa /var/spool/virtual
+virtual mail directories
+.It Pa /etc/virtual
+virtual passwd files
+.It Pa /etc/inetd.conf
+pop3 server program invocation
+.It Pa /etc/syslog.conf
+logging specifications
+.El
+.Sh SEE ALSO
+.Xr inetd 8 , 
+RFC1939
+.Sh HISTORY
+.Nm
+is a fork of the gnu-pop3d project.

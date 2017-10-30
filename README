@@ -1,0 +1,73 @@
+virtualmail-pop3d (or vm-pop3d)
+
+vm-pop3d is a POP3 server.
+
+It supports alternative password files and mail spool directories;
+it can be used for setting up virtual email accounts -- mailboxes
+without real Unix owners for each. This will allow you to have
+multiple email accounts with the same name on one system.
+
+The POP3 protocol (by itself) is not secure. (Maybe vm-pop3d can
+help by allowing you to use non-real system users.)
+
+vm-pop3d is based on Jakob Kaivo's gnu-pop3d (formerly called ids-pop3d).
+I developed ten patches for gnu-pop3d version 0.9.8; accordingly,
+the first release of vm-pop3d is version 1.0.8. The code for vm-pop3d
+version 1.0.8 should be identical to a virtual mail version 1.0-patched
+gnu-pop3d 0.9.8.
+
+vm-pop3d provides UIDL support. This means it can return unique-id's
+for each message and the POP3 client can know which messages it has
+retrieved previously. This can save a lot of time and bandwidth. On
+related note, POP3 is not a good protocol for storing lots of old
+mail on a server; all the mail is stored in one huge mailbox, causing
+the POP3 servers to be very sluggish (although vm-pop3d is a lot faster
+than most other POP3 servers). Do consider deleting the mail often.
+
+This program is licensed under the terms of the GNU General
+Public License (GPL). See the file COPYING for this license.
+I am sorry the license is so restrictive; if you need a more free
+license which you can freely patch and use in proprietry products,
+please let me know.
+
+See the AUTHORS file for information about the authors of this software.
+
+Please see the file INSTALL for installation instructions. The INSTALL
+document also has information on configuring for virtual users usage.
+
+For "Frequently asked questions" read the FAQ.
+
+A history of changes of vm-pop3d back through the initial
+virtual mail patches for gnu-pop3d is available in the CHANGES file.
+
+An example vm-pop3d.spec file is provided to help build an RPM for
+this package. (If you make a vm-pop3d.spec file, RPMs, debs, or
+other packages, please share.)
+
+The RFC/ directory contains several RFCs related to POP3.
+(The following RFCs are obsolete or replaced:
+RFC1081, RFC1225, RFC1460, RFC1725 and RFC2095.)
+
+http://www.reedmedia.net/software/virtualmail-pop3d/
+
+Professional, commercial, technical support is available to
+install, implement, and configure this virtual email hosting solution.
+
+This is a freely-available open source solution for virtual
+email hosting.
+
+If you use vm-pop3d, please consider signing up for the
+vm-pop3d-announce mailing list (to receive messages about
+new versions, bug fixes, and security updates).
+
+Mailing Lists                  
+
+ vm-pop3d-announce - for announcements of new releases, bug fixes,
+   or security problems. (No discussion/no posting).
+ vm-pop3d-users - for discussion on installing and using vm-pop3d.
+ vm-pop3d-devel - for discussion on code development of vm-pop3d.
+
+To sign up for any of these mailing lists, send an email to
+majordomo@lists.kmv.ru and in the body of the message put:
+   subscribe listname 
+

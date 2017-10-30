@@ -1,0 +1,420 @@
+CHANGES / HISTORY
+
+17/Jan/2002 1.1.6
+	Bug Fix: Don't freopen() mailbox in quit.c; it is now open
+	read/write in user.c (and apop.c). (This freopen caused 
+	fcntl(2) lock to be lost and mailbox could be corrupted if
+	LDA didn't use lockfile checking.)
+
+	Add getopt* source files to DISTFILES in Makefile.in. (Thanks
+	to Andrey J. Melnikoff.) (They were removed from the SRCS list
+	in the Makefile.in in the 1.1.5 version.)
+
+21/Dec/2001 1.1.6
+	More informative message (and free lockfile) if having problem
+	when deleting .lock file. Also, unlock mbox first (extra.c).
+
+19/Dec/2001 1.1.6
+	Got rid of realloc() in pop3_retr (retr.c) and pop3_top (top.c);
+	this was supposed to be removed with fixes on 11/Oct/2001 and
+	28/Nov/2001.
+
+	Only allow "From " to be delimiter of mbox message if it
+	is the first line or has a blank line before it. (Some MDAs
+	escape it with a ">" so it doesn't matter.) Fixes in
+	extra.c (pop3_getsizes), retr.c (pop3_retr), top.c (pop3_top),
+	and quit.c (pop3_quit). (Reported by Andrey J. Melnikoff
+	and Jim Pazarena.)
+
+18/Dec/2001 1.1.6
+	Fix configure script (configure.in) so it explains that
+	PAM and virtual-based support are enabled by default.
+
+04/Dec/2001 1.1.6
+	Documentation: Updated and clarified INSTALL document.
+
+29/Nov/2001 1.1.6
+	Documentation: Explained "host name not found" in FAQ.
+	
+29/Nov/2001 1.1.5
+	Install manual page; version 1.1.1 accidently removed
+	manual page installation (Makefile.in).
+
+	Got rid of 600 second timeout limitation (vm-pop3d.c, vm-pop3d.8).
+
+	Changed --help usage message (extra.c).
+
+	Use system's getopt_long() if available; also, improved PAM
+	checks (configure.in).
+
+	Documentation: Added comments about PAM to INSTALL doc.
+
+28/Nov/2001 1.1.5
+	Fixed never-released bug introduced on 11/Oct/2001: if a dot
+	(period) is at 80th character don't escape with another dot (retr.c).
+
+	Fixed memory allocation in virtual.c, where it could be abused
+	to use up some memory. Now the returned passwd data is just
+	static. (Thanks to Jeff Davis.)
+
+	Bug Fix: Removed freopen() calls in pop3_top (top.c), pop3_retr
+	(retr.c), uidl (uidl.c) and pop3_getsizes (extra.c); they were not
+	needed (and they could cause corrupted mailbox because the shared
+	lock is lost). And made pop3_getsizes() rewind to beginning of file.
+
+	Minor change in pop3_retr() -- don't fgets() one more line if
+	done (retr.c).
+
+	Bug Fix: Changed top.c so it doesn't try to place entire long
+	line (up to newline) into memory before using. (See 11/Oct/2001.)
+
+	Changed VIRTUAL_MAILDIR to VIRTUAL_MAILPATH so there won't be
+	any confusion on whether it is maildir-type mailboxes (vm-pop3d.h,
+	user.c). (At this time, it is only Berkeley-style mbox format.)
+
+	Portability: Added ./configure directive to disable PAM
+	(configure.in). If available, PAM is still enabled by default. If
+	libdl exists, then use it (because some old versions of libpam
+	didn't link to it). Changed cpp definitions to just be USE_PAM
+	(config.h.in, vm-pop3d.h, user.c).
+
+	Added PAM debugging message if PAM error (user.c).
+
+	Fix: The syslogging is now reopened if there is a PAM error (user.c).
+	(Problem reported by Ed Thomson.) Got rid of PAM_ERROR macro.
+
+24/Nov/2001 1.1.5
+	Documentation: Further explained "Bad login" in FAQ.
+
+30/Oct/2001 1.1.5
+	Added some debugging to pop3_quit() to report on number of
+	messages to delete and total messages.
+
+	Don't delete all messages in pop3_quit() if number of messages
+	is zero and number of messages selected to be deleted is zero
+	(quit.c). This issue occurred with a corrupted (or non-standard
+	mailbox) as reported by Iliya Peregoudov; the mailbox was missing
+	"From " message delimiter.
+
+12/Oct/2001 1.1.5
+	Documentation: Added FAQ about using MD5 passwords.
+	(Information from Istvan Karaszi.)
+
+11/Oct/2001 1.1.5
+	Fixed copyright notices; some files had second copyright.
+	(As far as it is known, original code has original author's
+	copyright.)
+
+	Bug Fix: Changed retr.c so it doesn't try to place entire long
+	line (up to newline) into memory before printing. This worked,
+	but is very slow and maybe cause denial of service problems. In
+	addition, it was reported by zas of norz.org to crash some
+	vm-pop3d services. This realloc() loop also reported by Andrey J.
+	Melnikoff in July.
+
+04/Oct/2001 1.1.5
+	Documentation: Added FAQ about "Socket closed".
+
+14/Sep/2001 1.1.5
+	Made virtual.c work with password files with more fields
+	(but it doesn't store the additional fields). This will
+	allow it to work with standard passwd(5) format. (Idea from
+	Tomi Hakala and others.)
+
+10/Jul/2001 1.1.5
+	Changed gnu-pop3d reference -- PAM_gnupop3d_conv to
+	PAM_vmpop3d_conv (user.c).
+
+	Documentation: Added FAQ about rejecting passwords ("-ERR Bad
+	login") to remind to setup PAM configuration, if applicable.
+
+26/Jun/2001 1.1.5
+	A few debug logging were never done (vm-pop3d.c).
+
+13/Jun/2001 1.1.5
+	Bug Fix: --disable-virtual wouldn't compile; connect IP
+	logging code added for 1.1.4 code used a variable that
+	was previously just used for USE_VIRTUAL (vm-pop3d.c). 
+
+11/Jun/2001 1.1.4
+	At startup, make sure UID used for virtual exists
+	(vm-pop3d.c).
+
+	Documentation: Explained --user and --group options in
+	manual page and INSTALL document; added FAQ entry about
+	running as non-root.
+
+	Feature: Added command-line option (-u or --user) to set
+	user UID for setuid for virtual users (vm-pop3d.c and
+	virtual.c).
+
+	Feature: Added command-line option (-g or --group) to set
+	GID for setgid (vm-pop3d.c).
+
+	pop3_abquit now logs if fdopen() doesn't work for output
+	stream (extra.c).
+
+	If setuid didn't work then don't allow log in and log problem
+	(user.c).
+
+	Bug Fix: Creation of lockfile is checked. Before, if not
+	created, it would seg fault at end of session. (Thanks
+	to Rok Papez.)
+
+	Bug Fix: When concurrent children exited or stopped at same time,
+	the correct amount of new children wouldn't start. Status is
+	collected for waitpid. SIGCHLD signal is set to SIG_DFL (the
+	default) instead of ignoring it (vm-pop3d.c). (Thanks to Rok Papez.)
+
+06/Jun/2001 1.1.4
+	Feature: logs IP address of client.
+
+30/May/2001 1.1.4
+	Documentation: Explained "inetd looping" in FAQ.
+
+30/May/2001
+	Documentation: Updated webpage to add various examples for
+	MDA mail delivery, password files, and using POP3 client.
+
+23/May/2001 1.1.4
+	Documentation: added information about mailing lists to README.
+
+	If user doesn't exist, debug level 3 reports non-existent user.
+
+14/Apr/2001 1.1.4
+	Replaced gnu-pop3d.spec with vm-pop3d.spec; this spec file
+	is used for creating a RPM. (Thanks to Radek Libovicky
+	libovicky @ lirais.cz.)
+
+12/Apr/2001 1.1.3
+	Documentation: added note about debug option to manual page;
+	added note about enabling debugging in INSTALL.
+
+11/Apr/2001 1.1.3
+	Changed pop3_usage (extra.c) to not exit when done so
+	it could also exit(1) if wrong options.
+
+	Bug Fix: If port in use, report with syslog; previously it
+	reported to stderr, but the stderr descriptor was already closed.
+	(This needs to be improved.)
+
+	Check return codes for accept(), fork() and waitpid() (vm-pop3d.c).
+
+	Bug Fix: Under some operating systems when running as a
+	standalone daemon, when a child dies, a new process was not
+	started due to a race condition. Fixed by removing SIGCHLD
+	handler, setting it to SIG_IGN, using waitpid instead of
+	wait, and _exit instead of exit (vm-pop3d.c).
+
+	Added DEBUG and "-d" argument to display debugging messages
+	and/or syslog messages. Added ./configure directive to
+	enable this debugging (configure.in).
+
+11/Apr/2001 1.1.2
+	Changed all formatting of code using non-GNU indent.
+
+06/Apr/2001 1.1.1
+	Documentation: Clarified information about VIRTUAL_MAILDIR
+        (INSTALL). Added notes to vm-pop3d.h.
+
+	Now logs if can't open a virtual password file (virtual.c).
+	(Thanks to Padraic Renaghan.)
+
+	Bug Fix: If virtual password file is not formatted correctly,
+	then continue to next line (instead of exiting) (virtual.c).
+	(Thanks to Padraic Renaghan.)
+
+	Changed PATH_TO_PASSWORDS to VIRTUAL_PASSWORDS_PATH; added
+	VIRTUAL_PASSWORD_FNAME (defaults to "passwd") instead of
+	hardcoding "passwd" (vm-pop3d.h and virtual.c). Documentation
+	updated (INSTALL). (Thanks to Padraic Renaghan.)
+
+	Documentation: INSTALL document now adds note about installing
+	init (Sys-V) script.
+
+	Bug Fix: Do not overwrite $(ROOT)/etc/rc.d/init.d/vm-pop3d with
+	"make install", because it should be done manually, due to admin's
+	customizations (Makefile.in). (Thanks to Padraic Renaghan.)
+
+        Release: 1.1.0
+
+	Documentation: Added comment about UIDL support (INSTALL).
+
+	Added "UIDL" to CAPA list in pop3_capa() (capa.c).	
+
+	Bug Fix: Using MAILSPOOLHOME when logging in with a virtual
+	user caused signal 11. (Real problem not fixed.) Worked-around
+	problem so virtual user doesn't use MAILSPOOLHOME (user.c).
+
+05/Apr/2001
+	Logging changed to not report name of mailbox. (This is a waste.)
+	If using /dev/null log about it (via LOG_ERR) (user.c).
+
+	Code Cleanup: Removed free()ing of pw (struct passwd) (user.c). 
+
+	Formatting: Cleanup spacing/tabs in pop3_user() (user.c).
+
+        Release: 1.0.9
+
+	Documentation: Virtual users support enabled by default;
+	use --disable-virtual to disable. Minor changes to INSTALL.
+
+	Virtual users support (optional passwd files and spool
+	directories) is now enabled by default (configure.in).
+
+	Code Cleanup: Only set virtual uid for the user when the user
+	is found (not for every user in passwd file).
+
+	Bug Fix: Make sure getvirtualpwnam() closes the passwd file.
+
+	Feature: Implemented UIDL (currently using Message-Id from mail
+	headers).
+
+17/Mar/2001
+	Documentation: Manual page rewrite started.
+
+	vm-pop3d version 1.0.8 is gnu-pop3d 0.9.8 with virtual
+	mail patch 1.0 integrated. In addition, the README and INSTALL
+	documents are changed. All references to gnu-pop3d are changed
+	(except for history or license). vm-pop3d 1.0.8 codewise is the
+	same as a virtual mail 1.0-patched gnu-pop3d 0.9.8.
+
+26/Feb/2001
+	Documentation: Further explained "/dev/null" in FAQ.
+
+20/Dec/2000
+	Code Cleanup: Moved MAXHOSTNAMELEN definition to below
+	system includes to stop redefined warnings (gnu-pop3d.h).
+
+	Feature: Log signal number before quiting on signal (extra.c).
+
+	Code Cleanup: Renamed MAIL_UID to VIRTUAL_UID (to make this
+	more clear) and added comments and changed documentation.
+	Renamed mail_uid to virtual_uid (virtual.c).
+
+	Code Cleanup: Renamed VIRTUALMAILSPOOL to VIRTUAL_MAILDIR
+	and added comments and changed documentation.
+
+15/Nov/2000
+	Documentation: Added example of using xinetd to INSTALL
+	document. (Thanks to Sten Eriksson sten.eriksson @ udac.se.)
+
+13/Nov/2000
+	Documentation: Started FAQ.
+
+3/Nov/2000
+	Documentation: Cleaned up and expanded INSTALL document with
+	details and examples on using inetd.
+
+22/June/2000
+	Bug Fix: Got rid of signal handler for SIGSTOP (gnu-pop3d.c).
+	According to sigaction(2), it will fail if an attempt is made
+	to supply a handler for SIGSTOP. It was returning: "EINVAL
+	(Invalid argument)".
+
+18/May/2000
+	Bug Fix: Got rid of actual signal handler for SIGPIPE. Now
+	using SIG_IGN to ignore any write on a pipe with no reader.
+	(Note: The signal handler for SIGPIPE is not in the original
+	source. It was added to this patch on 21/Jan/2000.)
+
+21/Apr/2000
+	Bug Fix: Fixed configure script to check for libraries after
+	headers, because it wouldn't check for libpam, because it tests
+	if pam headers are found first. (Note: This problem is from my
+	configure.in file -- not in original source distribution.)
+
+	Feature: (Or should I call it a "Bug Fix"?) You can now compile
+	with PAM support. If using virtual support and a @domain part
+	exists, then it will bypass the PAM section.
+
+	Documentation: Added note about PAM configuration to INSTALL file.
+
+6/Mar/2000
+	Bug Fix: Fixed INSTALL documentation because MAILSPOOLHOME
+	is defined in config.h not pop3d.h (Thanks to Mike Klinkert
+	michael @ nomennescio.net). (Still needs a ./configure option.)
+
+21/Jan/2000
+	Portability: Added signal handler for SIGPIPE (gnu-pop3d.c)
+	which may stop stale lock files when client drops connection
+	(Thanks to Ralf Winkel Ralf.Winkel @ tui.de).
+
+20/Jan/2000
+	Code Cleanup: Set pw to NULL in pop3_user (user.c) to stop
+	"might be used uninitialized" warning. Use type casting for
+	pointer target passing in pop3_mainloop (gnu-pop3d.c) to
+	stop "differ in signedness" warning. Use type casting for
+	pointer target passing in pop3_daemon (gnu-pop3d.c) to
+	stop "differ in signedness" and "incompatible pointer
+	type" warnings.
+
+19/Jan/2000
+	Release: version 0.7.
+
+	Bug Fix: use temp_domain instead of virtualdomain
+	for preliminary inet_ntoa for IP_BASED_VIRTUAL. 
+
+	Code Cleanup: If has host name lookup problem for
+	IP_BASED_VIRTUAL then give error message and quit.
+
+18/Jan/2000
+	Release: version 0.6.
+
+	Bug Fix: not sure why it is a bug... but removed
+	virtualdomain++ in pop3_mainloop (gnu-pop3d.c); so
+	to start after the domain_delimiter, the temp_domain
+	is incremented. (Found this problem using gdb and mpr.)
+
+17/Jan/2000
+	Code Cleanup: Added const char domain_delimiters
+	";!:@". And loops through these. Uses strdup to allocate 
+	virtualdomains, if needed. And free's it if created.
+
+12/Jan/2000
+	Release: version 0.4.
+
+	Code Cleanup: Ensure that ofile is non-null in pop3_abquit()
+	in extra.c so it does not attempt to write an error message
+	through the socket; for example, if a TERM signal was sent,
+	then a SEGV would be triggered and the process would not
+	terminate. (Thanks to Jonathan Chin jonathan.chin @
+	ox.compsoc.net). 
+
+	Bug Fix: Don't free virtualdomain in quit.c
+	(caused segmentation fault). Added #ifdef USE_VIRTUAL
+	before referencing virtualdomain in quit.c (didn't 
+	compile when virtual support was not enabled -- but
+	not that this matters since it is commented out).
+
+9 Dec. 1999
+	Release: version 0.3.
+
+30 Nov. 1999
+	Feature: Added configure support --enable-virtual-domains
+        and --enable-ip-based-virtual (New configure.in and
+	configure). Added some debugging info.
+
+	Bug Fix: Changed getsockname to use infile not sock.
+	Added check before freeing virtualdomain.
+
+        Code cleanup: Remove line_no references from virtual.c.
+
+	Portability: Changed how _PATH_MAILDIR and MAXNAMELEN is
+	configured (Thanks to Bill Sebok wls @ astro.umd.edu).
+	Now using chdir to go into virtual mail spool directory
+	(Thanks to Christian Roy roychri @ infiniweb.ca).
+
+24 Nov. 1999
+	Feature: Added "IP_BASED_VIRTUAL" macro configuration.
+	Uses getsockname, inet_ntoa, gethostbyaddr. 
+        
+	Portability: Changed type __uid_t to uid_t in virtual.c for
+	better BSD compatibility (Thanks to Ed Thomson
+	ethomson @ ravecomm.com).
+
+	Code cleanup: Changed sprintf to snprintf in virtual.c.
+
+7 Oct. 1999
+	Posted this first patch to gnu-pop3d-list.
+

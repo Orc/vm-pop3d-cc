@@ -1,0 +1,58 @@
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+/* Define to empty if the keyword does not work.  */
+#undef const
+
+/* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
+#undef HAVE_SYS_WAIT_H
+
+/* Define as the return type of signal handlers (int or void).  */
+#undef RETSIGTYPE
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* If defined, use this location relative to user's home directory for their
+ * mailbox before system spool. Must have a leading / and match mailer
+ * configuration. Off by default. If enabled but no path is given, defaults
+ * to "/Mail/mailbox" */
+#undef MAILSPOOLHOME
+
+/* Define if you have the crypt function.  */
+#undef HAVE_CRYPT
+
+/* Define if you have the socket function.  */
+#undef HAVE_SOCKET
+
+/* Define if you have the <paths.h> header file.  */
+#undef HAVE_PATHS_H
+
+/* Define if you have the <shadow.h> header file.  */
+#undef HAVE_SHADOW_H
+
+/* Define if you have the <sys/file.h> header file.  */
+#undef HAVE_SYS_FILE_H
+
+/* Define if you have the <syslog.h> header file.  */
+#undef HAVE_SYSLOG_H
+
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the crypt library (-lcrypt).  */
+#undef HAVE_LIBCRYPT
+
+/* Define if you have the pam library (-lpam).  */
+#undef USE_PAM
+
+/* Using local getopt.h */
+#undef USE_LOCAL_GETOPT_H
+
+/* Define if you want virtual domains support. */
+#undef USE_VIRTUAL
+
+/* Define if you want to use IP-based virtual domains support. */
+#undef IP_BASED_VIRTUAL
+
+/* Define if you want extra logging and messages. */
+#undef DEBUG

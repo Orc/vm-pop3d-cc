@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Startup script for vm-pop3d
+#
+# chkconfig: 345 85 15
+# description: vm-pop3d is a POP3 server with virtual domains support
+# processname: pop3d
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# See how we were called.
+case "$1" in
+  start)
+	echo -n "Starting vm-pop3d: "
+	daemon vm-pop3d -d 10 -t 600
+	echo
+	touch /var/lock/subsys/vm-pop3d
+	;;
+  stop)
+	echo -n "Shutting down vm-pop3d: "
+	killproc vm-pop3d
+	echo
+	rm -f /var/lock/subsys/vm-pop3d
+	;;
+  status)
+	status vm-pop3d
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|status}"
+	exit 1
+esac
+
+exit 0

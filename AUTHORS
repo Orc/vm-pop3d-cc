@@ -1,0 +1,32 @@
+Jeremy C. Reed <reed@reedmedia.net> is the maintainer of virtualmail-pop3d.
+(vm-pop3d is a fork of the gnu-pop3d project.) Previously, he developed
+ten patches for gnu-pop3d which were widely used, but never integrated.
+
+=== The following is the original AUTHORS file for gnu-pop3d 0.9.8 ===
+
+Jakob 'sparky' Kaivo <jkaivo@nodomainname.net> is the original and primary
+author of GNU POP, as well as the maintainer.
+
+Sean 'Shaleh' Perry <shaleh@debian.org> has been invaluable in helping to test
+code and make improvements, including the addition of the CAPA command, the
+idea of using the message struct rather than several different arrays, and
+several memory use issues. He has also helped keep things up to snuff with
+RFCs, and contributed the Debian package stuff and man page. He also looks
+over code before release to make sure I didn't miss anything <g> and lots of
+other work.
+
+Oscar Wahlberg <oscar.wahlberg@connecta.se> contributed APOP and some other
+improvements.
+
+Edgard Castro <castro@usmatrix.net> contributed a much better gnu-pop3d.spec
+file (for RedHat RPM) than the original, as well as a new gnu-pop3d.init script
+and PAM support.
+
+Mike Klinkert <michael@cs.vu.nl> contributed the code for opening alternatvie
+mailboxes (such as might be created by procmail).
+
+Daniel Bergstrom <noa@melody.se> contributed some improvements for PAM support
+and autoconf.
+
+R. Soderberg <occupant@coldflame.net> contributed various autoconf fixes and
+improvements.
